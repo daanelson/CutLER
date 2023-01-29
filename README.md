@@ -39,6 +39,8 @@ MaskCut can be used to provide segmentation masks for multiple instances of each
 ### MaskCut Demo
 
 Try out the MaskCut demo using Colab (no GPU needed): [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1X05lKL_IBRvZB7q6n6pb4w00_tIYjGlf?usp=sharing)
+[![Replicate](https://replicate.com/cjwbw/cutler/badge)](https://replicate.com/cjwbw/cutler) 
+
 
 If you want to run MaskCut locally, we provide `demo.py` that is able to visualize the pseudo-masks produced by MaskCut.
 Run it with:
