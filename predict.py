@@ -5,23 +5,20 @@ wget https://dl.fbaipublicfiles.com/dino/dino_deitsmall8_300ep_pretrain/dino_dei
 """
 
 import sys
-import os
 from typing import List
 
 sys.path.append("maskcut")
-from typing import Any, Optional
+import dino
 import numpy as np
 import PIL.Image as Image
 import torch
-from scipy import ndimage
-from colormap import random_color
-
-import dino
-from third_party.TokenCut.unsupervised_saliency_detection import metric
-from crf import densecrf
-from maskcut import maskcut
-
 from cog import BasePredictor, Input, Path
+from colormap import random_color
+from crf import densecrf
+from scipy import ndimage
+
+from maskcut import maskcut
+from third_party.TokenCut.unsupervised_saliency_detection import metric
 
 
 class Predictor(BasePredictor):
@@ -60,7 +57,7 @@ class Predictor(BasePredictor):
         model: str = Input(
             description="Choose the model architecture",
             default="base",
-            choices=["small", "base"]
+            choices=["small", "base"],
         ),
         n_pseudo_masks: int = Input(
             description="number of pseudo-masks per image",
@@ -128,7 +125,7 @@ class Predictor(BasePredictor):
             out = vis_mask(out, pseudo_mask, random_color(rgb=True))
             if output_pseudo_masks:
                 mask_im = Image.fromarray(pseudo_mask)
-                mask_path =  f"mask_{mask_ind}.png"
+                mask_path = f"mask_{mask_ind}.png"
                 mask_im.save(mask_path)
                 mask_out.append(Path(mask_path))
 
