@@ -5,6 +5,8 @@ wget https://dl.fbaipublicfiles.com/dino/dino_deitsmall8_300ep_pretrain/dino_dei
 """
 
 import sys
+import os
+from typing import List
 
 sys.path.append("maskcut")
 from typing import Any, Optional
@@ -19,12 +21,7 @@ from third_party.TokenCut.unsupervised_saliency_detection import metric
 from crf import densecrf
 from maskcut import maskcut
 
-from cog import BasePredictor, Input, Path, BaseModel
-
-
-class ModelOutput(BaseModel):
-    pseudo_mask_list: Optional[Any]
-    visualisation: Path
+from cog import BasePredictor, Input, Path
 
 
 class Predictor(BasePredictor):
@@ -66,18 +63,18 @@ class Predictor(BasePredictor):
             choices=["small", "base"]
         ),
         n_pseudo_masks: int = Input(
-            description="the maximum number of pseudo-masks per image",
+            description="number of pseudo-masks per image",
             default=3,
         ),
         tau: float = Input(
             description="threshold used for producing binary graph",
             default=0.15,
         ),
-        output_pseudo_mask_list: bool = Input(
-            description="Output the list of pseudo masks if set to True.",
+        output_pseudo_masks: bool = Input(
+            description="Output pseudo masks if set to True.",
             default=False,
         ),
-    ) -> ModelOutput:
+    ) -> List[Path]:
         """Run a single prediction on the model"""
 
         backbone = self.backbone_base if model == "base" else self.backbone_small
@@ -125,18 +122,24 @@ class Predictor(BasePredictor):
             pseudo_mask_list.append(pseudo_mask)
 
         out = np.array(I)
-        for pseudo_mask in pseudo_mask_list:
+        mask_out = []
 
+        for mask_ind, pseudo_mask in enumerate(pseudo_mask_list):
             out = vis_mask(out, pseudo_mask, random_color(rgb=True))
+            if output_pseudo_masks:
+                mask_im = Image.fromarray(pseudo_mask)
+                mask_path =  f"mask_{mask_ind}.png"
+                mask_im.save(mask_path)
+                mask_out.append(Path(mask_path))
 
-        output_path = f"/tmp/out.png"
+        output_path = "out.png"
 
         out.save(str(output_path))
 
-        return ModelOutput(
-            pseudo_mask_list=pseudo_mask_list if output_pseudo_mask_list else None,
-            visualisation=Path(output_path),
-        )
+        all_out = [Path(output_path)]
+        all_out.extend(mask_out)
+
+        return all_out
 
 
 def vis_mask(input, mask, mask_color):
